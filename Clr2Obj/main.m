@@ -52,7 +52,7 @@ int main(int argc, const char *argv[]) {
         NSString *categoryImplementationFileName = [categoryFileName stringByAppendingPathExtension:@"swift"];
         NSError *error;
 
-        NSString *template = [NSString stringWithContentsOfFile:@"UIColorCategory.template" encoding:NSUTF8StringEncoding error:&error];
+        NSString *template = [NSString stringWithContentsOfFile:@"UIColorExtension.template" encoding:NSUTF8StringEncoding error:&error];
 
         if (error) {
             NSLog(@"Cannot load UIColorCategory.template, will use default. Error: %@", error);
