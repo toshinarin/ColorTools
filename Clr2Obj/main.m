@@ -48,57 +48,32 @@ int main(int argc, const char *argv[]) {
             baseName = [NSString stringWithCString:argv[2] encoding:NSUTF8StringEncoding];
         }
 
-        NSString *categoryName = [baseName fullyCasedString];
-        NSString *categoryFileName = [NSString stringWithFormat:@"UIColor+%@", [baseName fullyCasedString]];
-        NSString *categoryHeaderFileName = [categoryFileName stringByAppendingPathExtension:@"h"];
-        NSString *categoryImplementationFileName = [categoryFileName stringByAppendingPathExtension:@"m"];
+        NSString *categoryFileName = [NSString stringWithFormat:@"%@Color", [baseName fullyCasedString]];
+        NSString *categoryImplementationFileName = [categoryFileName stringByAppendingPathExtension:@"swift"];
         NSError *error;
 
         NSString *template = [NSString stringWithContentsOfFile:@"UIColorCategory.template" encoding:NSUTF8StringEncoding error:&error];
 
         if (error) {
             NSLog(@"Cannot load UIColorCategory.template, will use default. Error: %@", error);
-            template = @"#import \"%CATEGORYHEADER%\"\n\n@implementation UIColor (%CATEGORY%)\n%COLORLIST%\n@end";
-        }
-        template = [template stringByReplacingOccurrencesOfString:@"%CATEGORYHEADER%" withString:categoryHeaderFileName];
-
-        error = nil;
-        NSString *headerTemplate = [NSString stringWithContentsOfFile:@"UIColorCategoryHeader.template" encoding:NSUTF8StringEncoding error:&error];
-
-        if (error) {
-            NSLog(@"Cannot load UIColorCategoryHeader.template, will use default. Error: %@", error);
-            headerTemplate = @"#import <UIKit/UIKit.h>\n@interface UIColor (%CATEGORY%)\n%COLORLIST%\n@end";
+            template = @"import UIKit\n\nextension UIColor {\n%COLORLIST%}\n";
         }
 
-        template = [template stringByReplacingOccurrencesOfString:@"%CATEGORY%" withString:categoryName];
-        headerTemplate = [headerTemplate stringByReplacingOccurrencesOfString:@"%CATEGORY%" withString:categoryName];
+        NSString *definTemplate = @"    class func %COLORNAME%() -> UIColor {\n        return UIColor(red:%f, green:%f, blue:%f, alpha:%f)\n    }\n\n";
 
-        NSString *declTemplate = @"+ (UIColor *) %COLORNAME%;\n";
-        NSString *definTemplate = @"+ (UIColor *) %COLORNAME% {\n    return [UIColor colorWithRed:%f green:%f blue:%f alpha:%f];\n}\n\n";
-
-        NSString *allDeclarations = @"";
         NSString *allDefinitions = @"";
         for (NSString *colorName in list.allKeys) {
             NSColor *color = [list colorWithKey:colorName];
-            NSString *declaration = [declTemplate stringByReplacingOccurrencesOfString:@"%COLORNAME%" withString:[colorName camelCasedString]];
-            NSString *definition = [definTemplate stringByReplacingOccurrencesOfString:@"%COLORNAME%" withString:[colorName camelCasedString]];
+            NSString *definition = [definTemplate stringByReplacingOccurrencesOfString:@"%COLORNAME%" withString:colorName];
             definition = [NSString stringWithFormat:definition, color.redComponent, color.greenComponent, color.blueComponent, color.alphaComponent];
 
-            allDeclarations = [allDeclarations stringByAppendingString:declaration];
             allDefinitions = [allDefinitions stringByAppendingString:definition];
         }
 
         NSString *definitionFileContents = [template stringByReplacingOccurrencesOfString:@"%COLORLIST%" withString:allDefinitions];
-        NSString *declarationFileContents = [headerTemplate stringByReplacingOccurrencesOfString:@"%COLORLIST%" withString:allDeclarations];
-        NSLog(@"Will output to: %@/%@", categoryHeaderFileName, categoryImplementationFileName);
-
-        if (![declarationFileContents writeToFile:categoryHeaderFileName atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
-            NSLog(@"Failed to write definition file: %@", error);
-        }
         if (![definitionFileContents writeToFile:categoryImplementationFileName atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
             NSLog(@"Failed to write declaration file: %@", error);
         }
-
     }
     return 0;
 }
