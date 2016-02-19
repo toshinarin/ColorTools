@@ -59,7 +59,7 @@ int main(int argc, const char *argv[]) {
             template = @"import UIKit\n\nextension UIColor {\n%COLORLIST%}\n";
         }
 
-        NSString *definTemplate = @"    class func %COLORNAME%() -> UIColor {\n        return UIColor(red:%f, green:%f, blue:%f, alpha:%f)\n    }\n\n";
+        NSString *definTemplate = @"\n    class func %COLORNAME%() -> UIColor {\n        return UIColor(red:%f, green:%f, blue:%f, alpha:%f)\n    }\n";
 
         NSString *allDefinitions = @"";
         for (NSString *colorName in list.allKeys) {
